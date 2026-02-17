@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Language {
+  UZ
+  RU
+}
+
+model User {
+  id           String   @id @default(uuid())
+  telegramId   BigInt   @unique
+  fullName     String?
+  phoneNumber  String?  @unique
+  cardNo       String?  @unique
+  shiftStart   String   @default("09:00") // Format "HH:mm"
+  language     Language @default(UZ)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attendances Attendance[]
+
+  @@map("users")
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  checkTime DateTime
+  type      String   // STAY, ENTER, LEAVE (mapped from Hikvision)
+  status    AttendanceStatus @default(ON_TIME)
+  latenessReason String?
+
+  // Hikvision specific fields if needed
+  deviceIp  String?
+  
+  createdAt DateTime @default(now())
+
+  @@map("attendance_logs")
+}
+
+enum AttendanceStatus {
+  ON_TIME
+  LATE
+  ABSENT
+}

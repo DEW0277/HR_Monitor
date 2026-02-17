@@ -1,0 +1,36 @@
+{
+  "dependencies": {
+    "@grammyjs/nestjs": "^0.3.4",
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/event-emitter": "^2.1.1",
+    "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/schedule": "^6.1.1",
+    "@prisma/client": "^6.0.0",
+    "@types/cron": "^2.0.1",
+    "grammy": "^1.40.0",
+    "mssql": "^12.2.0",
+    "nest-winston": "^1.10.2",
+    "nestjs-i18n": "^10.6.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "winston": "^3.19.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main",
+    "test": "jest",
+    "postinstall": "prisma generate"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^10.4.15",
+    "@types/jest": "^30.0.0",
+    "@types/mssql": "^9.1.9",
+    "@types/node": "^25.2.3",
+    "jest": "^30.2.0",
+    "prisma": "^6.0.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  }
+}
