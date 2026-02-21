@@ -87,3 +87,4 @@ If the synchronization with Hikvision fails (`ETIMEOUT` or `ECONNREFUSED`):
 ## Usage
 - **Bot**: Users start the bot, share contact to register.
 - **Dashboard**: Admins open the Telegram Web App to view daily stats.
+# HR_Monitor
