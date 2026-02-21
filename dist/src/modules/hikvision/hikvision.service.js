@@ -12,16 +12,32 @@ var HikvisionService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HikvisionService = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const sql = require("mssql");
-const hikvision_config_1 = require("../../config/hikvision.config");
 let HikvisionService = HikvisionService_1 = class HikvisionService {
-    constructor() {
+    constructor(configService) {
+        this.configService = configService;
         this.logger = new common_1.Logger(HikvisionService_1.name);
-        this.connectWithRetry();
+    }
+    async onModuleInit() {
+        await this.connectWithRetry();
     }
     async connectWithRetry(retries = 5, delay = 5000) {
+        const config = {
+            user: this.configService.get('HIKVISION_USER'),
+            password: this.configService.get('HIKVISION_PASSWORD'),
+            server: this.configService.get('HIKVISION_HOST'),
+            port: Number(this.configService.get('HIKVISION_PORT')) || 1433,
+            database: this.configService.get('HIKVISION_DB') || 'master',
+            options: {
+                encrypt: false,
+                trustServerCertificate: true,
+            },
+            connectionTimeout: 15000,
+        };
         try {
-            this.pool = await new sql.ConnectionPool(hikvision_config_1.hikvisionConfig).connect();
+            this.logger.log(`Connecting to Hikvision at ${config.server}:${config.port}...`);
+            this.pool = await new sql.ConnectionPool(config).connect();
             this.logger.log('Connected to Hikvision Database');
         }
         catch (err) {
@@ -31,7 +47,7 @@ let HikvisionService = HikvisionService_1 = class HikvisionService {
                 return this.connectWithRetry(retries - 1, delay);
             }
             else {
-                this.logger.error('Max retries reached. Hikvision DB connection failed.', err);
+                this.logger.error('Max retries reached. Hikvision DB connection failed.');
             }
         }
     }
@@ -65,6 +81,6 @@ let HikvisionService = HikvisionService_1 = class HikvisionService {
 exports.HikvisionService = HikvisionService;
 exports.HikvisionService = HikvisionService = HikvisionService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], HikvisionService);
 //# sourceMappingURL=hikvision.service.js.map

@@ -29,24 +29,19 @@ let BotUpdate = class BotUpdate {
         this.prisma = prisma;
     }
     async onStart(ctx) {
-        const keyboard = new grammy_1.Keyboard()
-            .text('🇺🇿 O\'zbekcha')
-            .text('🇷🇺 Русский')
-            .resized();
+        const keyboard = new grammy_1.Keyboard().text("🇺🇿 O'zbekcha").text('🇷🇺 Русский').resized();
         await ctx.reply('Tilni tanlang / Выберите язык', {
             reply_markup: keyboard,
         });
     }
     async onMessage(ctx) {
         const text = ctx.message?.text;
-        const lang = text === '🇺🇿 O\'zbekcha' ? 'uz' : text === '🇷🇺 Русский' ? 'ru' : null;
+        const lang = text === "🇺🇿 O'zbekcha" ? 'uz' : text === '🇷🇺 Русский' ? 'ru' : null;
         if (lang && ctx.from) {
             exports.pendingLanguages.set(ctx.from.id, lang);
             const message = this.i18n.t('bot.share_contact', { lang });
             const buttonText = this.i18n.t('bot.contact_button', { lang });
-            const keyboard = new grammy_1.Keyboard()
-                .requestContact(buttonText)
-                .resized();
+            const keyboard = new grammy_1.Keyboard().requestContact(buttonText).resized();
             await ctx.reply(message, { reply_markup: keyboard });
             return;
         }
@@ -54,10 +49,10 @@ let BotUpdate = class BotUpdate {
         if (userId && exports.pendingLateness.has(userId)) {
             const attendanceId = exports.pendingLateness.get(userId);
             const reason = text;
-            if (reason) {
+            if (reason && attendanceId) {
                 await this.prisma.attendance.update({
                     where: { id: attendanceId },
-                    data: { latenessReason: reason }
+                    data: { latenessReason: reason },
                 });
                 exports.pendingLateness.delete(userId);
                 await ctx.reply('👍 ok');
@@ -73,22 +68,22 @@ let BotUpdate = class BotUpdate {
         const normalizedPhone = phone_normalizer_1.PhoneNumberNormalizer.normalize(phone);
         const userId = ctx.from?.id;
         const user = await this.prisma.user.findFirst({
-            where: { phoneNumber: normalizedPhone }
+            where: { phoneNumber: normalizedPhone },
         });
-        if (user) {
+        if (user && userId) {
             const lang = exports.pendingLanguages.get(userId) || 'UZ';
             await this.prisma.user.update({
                 where: { id: user.id },
                 data: {
                     telegramId: BigInt(userId),
                     language: lang === 'ru' ? 'RU' : 'UZ',
-                }
+                },
             });
             const successMsg = this.i18n.t('bot.registered', { lang });
             await ctx.reply(successMsg, { reply_markup: { remove_keyboard: true } });
             exports.pendingLanguages.delete(userId);
         }
-        else {
+        else if (userId) {
             const lang = exports.pendingLanguages.get(userId) || 'uz';
             const errorMsg = this.i18n.t('bot.user_not_found', { lang });
             await ctx.reply(errorMsg, { reply_markup: { remove_keyboard: true } });
@@ -97,17 +92,16 @@ let BotUpdate = class BotUpdate {
     async onLateLog(payload) {
         const { userId, latenessMinutes, attendanceId } = payload;
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user || !user.telegramId) {
+        if (!user || !user.telegramId)
             return;
-        }
         const lang = user.language === 'RU' ? 'ru' : 'uz';
         const message = this.i18n.t('bot.ask_lateness_reason', {
             lang,
-            args: { minutes: latenessMinutes }
+            args: { minutes: latenessMinutes },
         });
         try {
             await this.bot.api.sendMessage(Number(user.telegramId), message, {
-                reply_markup: { force_reply: true }
+                reply_markup: { force_reply: true },
             });
             exports.pendingLateness.set(Number(user.telegramId), attendanceId);
         }
@@ -132,7 +126,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BotUpdate.prototype, "onMessage", null);
 __decorate([
-    (0, nestjs_1.On)('contact'),
+    (0, nestjs_1.On)('message:contact'),
     __param(0, (0, nestjs_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [grammy_1.Context]),

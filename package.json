@@ -21,7 +21,8 @@
 	},
 	"scripts": {
 		"build": "tsc",
-		"start": "nest start",
+		"start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+		"start": "node dist/main.js",
 		"test": "jest",
 		"postinstall": "prisma generate"
 	},

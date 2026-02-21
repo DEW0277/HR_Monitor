@@ -1,4 +1,4 @@
-# Stage 1: Build
+# 1-Bosqich: Build (Nomini AS builder deb saqlash shart)
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -6,18 +6,14 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies including devDependencies for build
 RUN npm ci --legacy-peer-deps
 
 COPY . .
 
-# Generate Prisma Client
 RUN npx prisma generate
-
-# Build the application
 RUN npm run build
 
-# Stage 2: Production
+# 2-Bosqich: Production
 FROM node:20-alpine
 
 WORKDIR /app
@@ -25,18 +21,18 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install only production dependencies
-RUN npm ci --omit=dev --legacy-peer-deps
+RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts
 
+# Build qilingan fayllarni builder bosqichidan nusxalash
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Create logs directory
-RUN mkdir -p logs && chown -R node:node logs
+RUN mkdir -p logs && chown -R node:node /app
 
 USER node
 
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+# SIZDA FAYLLAR dist/src/main.js ICHIDA EKANLIGINI ANIQLADIK
+CMD ["node", "dist/src/main.js"]
