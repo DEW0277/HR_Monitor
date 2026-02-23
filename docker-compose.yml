@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. Ma'lumotlar bazasi (PostgreSQL)
   db:
@@ -15,8 +13,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
+      test:
+        ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-hr_monitor}']
+      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -27,10 +26,13 @@ services:
       dockerfile: Dockerfile
     container_name: hr-monitor-backend
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - '3000:3000'
+      - '5555:5555' # Prisma Studio porti
     environment:
-      # MUHIM: DATABASE_URL protokoli postgresql:// bo'lishi shart
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-admin1234}@db:5432/${POSTGRES_DB:-hr_monitor}?schema=public
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       MANAGEMENT_GROUP_ID: ${MANAGEMENT_GROUP_ID}
@@ -40,9 +42,9 @@ services:
       HIKVISION_PASSWORD: ${HIKVISION_PASSWORD}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
       NODE_ENV: production
+      TZ: Asia/Tashkent
     volumes:
       - ./logs:/app/logs
-      # I18n muammosi bo'lsa, src/i18n ni konteynerga bog'lab qo'yamiz (hotfix)
       - ./src/i18n:/app/dist/src/i18n
     depends_on:
       db:
@@ -58,10 +60,10 @@ services:
     ports:
       - '3001:3000'
     environment:
-      # Brauzer backendga ulanishi uchun
       NEXT_PUBLIC_API_URL: http://localhost:3000/api
     depends_on:
-      - backend
+      backend:
+        condition: service_started
 
 volumes:
   postgres_data:
